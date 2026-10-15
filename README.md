@@ -1,115 +1,388 @@
-# ServiceDesk Lite
+# \# ServiceDesk Lite
 
-A command-line IT support ticket manager built with **Java 21, JDBC, MySQL, Maven, JUnit 5, Docker, and GitHub Actions**.
+# 
 
-## Features
+# A lightweight, console-based IT support ticket management system built with \*\*Java 21, JDBC, and MySQL\*\*. The project demonstrates object-oriented design, database persistence, automated testing, Docker-based development, and continuous integration with GitHub Actions.
 
-- Create and list support tickets
-- Search tickets by ID
-- Update ticket status (`OPEN`, `IN_PROGRESS`, `RESOLVED`)
-- Filter by status or priority (`LOW`, `MEDIUM`, `HIGH`)
-- SQL status summary using `GROUP BY`
-- Persist data in MySQL
-- Unit tests for service-layer business rules
+# 
 
-## Project structure
+# \## Features
 
-```text
-ServiceDesk/
-├── .github/workflows/ci.yml
-├── .env.example
-├── .gitignore
-├── .dockerignore
-├── Dockerfile
-├── compose.yaml
-├── pom.xml
-├── schema.sql
-└── src/
-    ├── main/java/com/servicedesk/
-    │   ├── Main.java
-    │   ├── model/Ticket.java
-    │   ├── dao/TicketDAO.java
-    │   ├── service/TicketService.java
-    │   └── util/DatabaseConnection.java
-    └── test/java/com/servicedesk/TicketServiceTest.java
-```
+# 
 
-## Prerequisites
+# \- \*\*Create tickets\*\* with a title, description, requester, and priority.
 
-- JDK 21
-- Maven 3.9+
-- Docker Desktop (for the Docker option)
+# \- \*\*View all tickets\*\* with their IDs, priorities, statuses, requesters, and creation timestamps.
 
-Check installations:
+# \- \*\*Search by ID\*\* to retrieve individual tickets and their descriptions.
 
-```powershell
-java -version
-mvn -version
-docker --version
-docker compose version
-```
+# \- \*\*Update ticket status\*\* between `OPEN`, `IN\_PROGRESS`, and `RESOLVED`.
 
-## Option A — Run with Docker Compose
+# \- \*\*Filter tickets\*\* by status or priority.
 
-1. Copy `.env.example` to `.env`.
-2. Edit `.env` and set your own local passwords. Do not commit `.env`.
-3. Start the application and database:
+# \- \*\*Generate status summaries\*\* showing ticket counts by status.
 
-```powershell
-docker compose up --build
-```
+# \- \*\*Persistent storage\*\* using MySQL and JDBC.
 
-The console app runs interactively. Use the menu to create/list/search/update/filter tickets and view the summary. Stop it with `Ctrl+C`; then run `docker compose down` to stop the containers.
+# \- \*\*Automated tests\*\* using JUnit 5 and Mockito.
 
-**Note:** `schema.sql` runs automatically only when MySQL initializes an empty data volume. To reset the demo database completely, run `docker compose down -v` (this deletes stored data), then start again.
+# \- \*\*Containerized execution\*\* using Docker and Docker Compose.
 
-## Option B — Run Java locally, with MySQL in Docker
+# \- \*\*Continuous integration\*\* using GitHub Actions to build and test the project.
 
-1. Copy `.env.example` to `.env` and set passwords.
-2. Start only MySQL:
+# 
 
-```powershell
-docker compose up -d mysql
-docker compose ps
-```
+# \## Tech Stack
 
-Wait for MySQL to become healthy.
+# 
 
-3. Set connection variables in the same PowerShell window. Use the same password as `DB_PASSWORD` in `.env`:
+# | Technology | Purpose |
 
-```powershell
-$env:DB_URL = "jdbc:mysql://localhost:3306/servicedesk?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-$env:DB_USER = "servicedesk_app"
-$env:DB_PASSWORD = "your_password_here"
-```
+# |---|---|
 
-4. Build, test, and run:
+# | Java 21 | Application logic and object-oriented design |
 
-```powershell
-mvn clean verify
-java -jar target\servicedesk-lite-1.0.0.jar
-```
+# | JDBC | Java-to-MySQL database connectivity |
 
-## Tests
+# | MySQL 8.4 | Relational database and persistent storage |
 
-```powershell
-mvn test
-```
+# | Maven | Dependency management and build automation |
 
-The current unit tests use Mockito to mock `TicketDAO`; they do not require a running database. Database integration itself should be tested locally using Option A or B.
+# | JUnit 5 | Automated unit testing |
 
-## CI
+# | Mockito | Mocking dependencies in unit tests |
 
-GitHub Actions runs `mvn --batch-mode verify` on pushes and pull requests and uploads Surefire test reports. This is a **CI build-and-test workflow**, not an automated deployment pipeline.
+# | Docker | Containerized application execution |
 
-## Security notes
+# | Docker Compose | Coordinating the application and database |
 
-- `.env` is ignored by Git. Never commit real passwords.
-- The example credentials are for local development only.
-- This is a learning project; do not expose the database port publicly or use these settings in production.
+# | GitHub Actions | Automated build-and-test workflow |
 
-## Resume bullet (use only after you have run and verified it)
+# 
 
-**ServiceDesk Lite | Java, JDBC, MySQL, Maven, JUnit, Docker, GitHub Actions**
-- Developed a modular Java ticket-management application with MySQL persistence, JDBC prepared statements, input validation, and SQL-based status reporting.
-- Containerized the application and database with Docker Compose and automated Maven build/test execution through GitHub Actions.
+# \## Architecture
+
+# 
+
+# The application separates responsibilities into distinct layers:
+
+# 
+
+# \- \*\*Model — `Ticket.java`:\*\* Represents a support ticket and its attributes.
+
+# \- \*\*DAO — `TicketDAO.java`:\*\* Handles database operations using JDBC.
+
+# \- \*\*Service — `TicketService.java`:\*\* Contains ticket-management business logic.
+
+# \- \*\*Utility — `DatabaseConnection.java`:\*\* Manages database connectivity.
+
+# \- \*\*Entry point — `Main.java`:\*\* Provides the interactive console menu.
+
+# 
+
+# \### Request flow
+
+# 
+
+# ```text
+
+# User
+
+# &#x20;|
+
+# &#x20;v
+
+# Main.java
+
+# &#x20;|
+
+# &#x20;v
+
+# TicketService
+
+# &#x20;|
+
+# &#x20;v
+
+# TicketDAO
+
+# &#x20;|
+
+# &#x20;v
+
+# JDBC
+
+# &#x20;|
+
+# &#x20;v
+
+# MySQL Database
+
+# ```
+
+# 
+
+# \## Getting Started
+
+# 
+
+# \### Prerequisites
+
+# 
+
+# For local development, install:
+
+# 
+
+# \- JDK 21
+
+# \- Apache Maven 3.9+
+
+# \- MySQL 8.4, or Docker Desktop with Docker Compose
+
+# 
+
+# \### Option 1: Run with Docker
+
+# 
+
+# 1\. Clone the repository:
+
+# 
+
+# &#x20;  ```bash
+
+# &#x20;  git clone https://github.com/MithulKRS/servicedesk-lite.git
+
+# &#x20;  cd servicedesk-lite
+
+# &#x20;  ```
+
+# 
+
+# 2\. Create your local environment file:
+
+# 
+
+# &#x20;  ```powershell
+
+# &#x20;  Copy-Item .env.example .env
+
+# &#x20;  ```
+
+# 
+
+# 3\. Open `.env` and configure `DB\_PASSWORD` and `MYSQL\_ROOT\_PASSWORD` with your own values.
+
+# 
+
+# 4\. Start the database:
+
+# 
+
+# &#x20;  ```bash
+
+# &#x20;  docker compose up -d mysql
+
+# &#x20;  ```
+
+# 
+
+# 5\. Launch the interactive application:
+
+# 
+
+# &#x20;  ```bash
+
+# &#x20;  docker compose run --build --rm app
+
+# &#x20;  ```
+
+# 
+
+# The application menu lets you create, view, search, update, and filter tickets.
+
+# 
+
+# \*\*Note:\*\* If host port `3306` is already occupied, configure the MySQL port mapping in `compose.yaml` to use an available host port, such as `3307`, while keeping the container port at `3306`.
+
+# 
+
+# \### Option 2: Run tests locally
+
+# 
+
+# Run the unit tests with Maven:
+
+# 
+
+# ```bash
+
+# mvn clean test
+
+# ```
+
+# 
+
+# To package the application:
+
+# 
+
+# ```bash
+
+# mvn clean package
+
+# ```
+
+# 
+
+# \## Testing
+
+# 
+
+# The project currently contains 13 automated unit tests for `TicketService`.
+
+# 
+
+# The local test run completed successfully with:
+
+# 
+
+# \- Tests run: 13
+
+# \- Failures: 0
+
+# \- Errors: 0
+
+# 
+
+# The GitHub Actions `build-and-test` workflow has also completed successfully for the initial push.
+
+# 
+
+# These results reflect the current test suite and workflow run; they do not imply exhaustive testing of every possible input or environment.
+
+# 
+
+# \## Continuous Integration
+
+# 
+
+# The GitHub Actions workflow is located at:
+
+# 
+
+# ```text
+
+# .github/workflows/ci.yml
+
+# ```
+
+# 
+
+# It runs the project's build-and-test process when changes are pushed to the repository. This provides automated verification of the code during development.
+
+# 
+
+# \## Project Structure
+
+# 
+
+# ```text
+
+# servicedesk-lite/
+
+# ├── .github/
+
+# │   └── workflows/
+
+# │       └── ci.yml
+
+# ├── src/
+
+# │   ├── main/
+
+# │   │   └── java/com/servicedesk/
+
+# │   │       ├── Main.java
+
+# │   │       ├── dao/TicketDAO.java
+
+# │   │       ├── model/Ticket.java
+
+# │   │       ├── service/TicketService.java
+
+# │   │       └── util/DatabaseConnection.java
+
+# │   └── test/
+
+# │       └── java/com/servicedesk/
+
+# │           └── TicketServiceTest.java
+
+# ├── .env.example
+
+# ├── .gitignore
+
+# ├── Dockerfile
+
+# ├── compose.yaml
+
+# ├── pom.xml
+
+# ├── README.md
+
+# └── schema.sql
+
+# ```
+
+# 
+
+# \## Learning Outcomes
+
+# 
+
+# This project provided hands-on practice with:
+
+# 
+
+# \- Layered application design and separation of concerns.
+
+# \- Java object-oriented programming.
+
+# \- JDBC, SQL queries, and relational database persistence.
+
+# \- Unit testing with JUnit and Mockito.
+
+# \- Maven build automation and dependency management.
+
+# \- Docker-based development environments.
+
+# \- Git version control and GitHub Actions CI.
+
+# 
+
+# \## Future Improvements
+
+# 
+
+# \- Add pagination for large ticket lists.
+
+# \- Introduce stronger input validation and clearer error messages.
+
+# \- Add integration tests against a real MySQL instance.
+
+# \- Build a REST API using Spring Boot.
+
+# \- Add authentication, authorization, and audit logging.
+
+# 
+
+# \## Repository
+
+# 
+
+# \[GitHub — ServiceDesk Lite](https://github.com/MithulKRS/servicedesk-lite)
+
+
+
