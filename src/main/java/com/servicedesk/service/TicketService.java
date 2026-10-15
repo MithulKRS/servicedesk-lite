@@ -1,3 +1,4 @@
+
 package com.servicedesk.service;
 
 import com.servicedesk.dao.TicketDAO;
@@ -14,92 +15,161 @@ public class TicketService {
     private final TicketDAO dao;
 
     public TicketService(TicketDAO dao) {
+        if (dao == null) {
+            throw new IllegalArgumentException(
+                "TicketDAO cannot be null."
+            );
+        }
         this.dao = dao;
     }
 
-    // ── CREATE ────────────────────────────────────────────────────────────────
-    public Ticket createTicket(String title, String description,
-                               String requester, String priorityStr) throws SQLException {
+    // CREATE
+    public Ticket createTicket(
+            String title,
+            String description,
+            String requester,
+            String priorityStr
+    ) throws SQLException {
+
         validate(title, "Title");
         validate(requester, "Requester");
 
-        Priority priority;
-        try {
-            priority = Priority.valueOf(priorityStr.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                "Invalid priority: " + priorityStr + ". Use LOW, MEDIUM, or HIGH.");
-        }
+        Priority priority = parsePriority(priorityStr);
 
-        Ticket t = new Ticket(title.trim(), description, requester.trim(), priority);
-        long id = dao.createTicket(t);
-        t.setId(id);
-        return t;
+        Ticket ticket = new Ticket(
+            title.trim(),
+            description,
+            requester.trim(),
+            priority
+        );
+
+        long id = dao.createTicket(ticket);
+        ticket.setId(id);
+
+        return ticket;
     }
 
-    // ── LIST ALL ──────────────────────────────────────────────────────────────
+    // LIST ALL
     public List<Ticket> listAll() throws SQLException {
         return dao.findAll();
     }
 
-    // ── FIND BY ID ────────────────────────────────────────────────────────────
+    // FIND BY ID
     public Ticket findById(long id) throws SQLException {
-        if (id <= 0) throw new IllegalArgumentException("ID must be a positive number.");
-        Ticket t = dao.findById(id);
-        if (t == null) throw new IllegalArgumentException("No ticket found with ID: " + id);
-        return t;
-    }
+        validateId(id);
 
-    // ── UPDATE STATUS ─────────────────────────────────────────────────────────
-    public void updateStatus(long id, String newStatusStr) throws SQLException {
-        Status newStatus;
-        try {
-            newStatus = Status.valueOf(newStatusStr.toUpperCase());
-        } catch (IllegalArgumentException e) {
+        Ticket ticket = dao.findById(id);
+
+        if (ticket == null) {
             throw new IllegalArgumentException(
-                "Invalid status: " + newStatusStr + ". Use OPEN, IN_PROGRESS, or RESOLVED.");
+                "No ticket found with ID: " + id
+            );
         }
 
-        Ticket existing = findById(id);          // validates existence
+        return ticket;
+    }
 
-        // Enforce simple forward-only transitions
+    // UPDATE STATUS
+    public void updateStatus(
+            long id,
+            String newStatusStr
+    ) throws SQLException {
+
+        validateId(id);
+        Status newStatus = parseStatus(newStatusStr);
+
+        // Validate that the ticket exists.
+        Ticket existing = findById(id);
         Status current = existing.getStatus();
-        if (current == Status.RESOLVED && newStatus != Status.RESOLVED) {
+
+        // Resolved tickets cannot be reopened.
+        if (current == Status.RESOLVED
+                && newStatus != Status.RESOLVED) {
             throw new IllegalStateException(
-                "Ticket #" + id + " is already RESOLVED and cannot be re-opened.");
+                "Ticket #" + id
+                    + " is already RESOLVED and cannot be re-opened."
+            );
         }
 
         dao.updateStatus(id, newStatus);
     }
 
-    // ── FILTER ────────────────────────────────────────────────────────────────
-    public List<Ticket> filterByStatus(String statusStr) throws SQLException {
-        try {
-            return dao.findByStatus(Status.valueOf(statusStr.toUpperCase()));
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                "Invalid status: " + statusStr + ". Use OPEN, IN_PROGRESS, or RESOLVED.");
-        }
+    // FILTER BY STATUS
+    public List<Ticket> filterByStatus(
+            String statusStr
+    ) throws SQLException {
+        Status status = parseStatus(statusStr);
+        return dao.findByStatus(status);
     }
 
-    public List<Ticket> filterByPriority(String priorityStr) throws SQLException {
-        try {
-            return dao.findByPriority(Priority.valueOf(priorityStr.toUpperCase()));
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                "Invalid priority: " + priorityStr + ". Use LOW, MEDIUM, or HIGH.");
-        }
+    // FILTER BY PRIORITY
+    public List<Ticket> filterByPriority(
+            String priorityStr
+    ) throws SQLException {
+        Priority priority = parsePriority(priorityStr);
+        return dao.findByPriority(priority);
     }
 
-    // ── REPORT ────────────────────────────────────────────────────────────────
-    public Map<String, Integer> getStatusSummary() throws SQLException {
+    // STATUS SUMMARY
+    public Map<String, Integer> getStatusSummary()
+            throws SQLException {
         return dao.getStatusSummary();
     }
 
-    // ── PRIVATE ───────────────────────────────────────────────────────────────
+    // VALIDATION HELPERS
     private void validate(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " cannot be empty.");
+            throw new IllegalArgumentException(
+                fieldName + " cannot be empty."
+            );
+        }
+    }
+
+    private void validateId(long id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException(
+                "ID must be a positive number."
+            );
+        }
+    }
+
+    private Priority parsePriority(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(
+                "Priority cannot be empty. "
+                    + "Use LOW, MEDIUM, or HIGH."
+            );
+        }
+
+        try {
+            return Priority.valueOf(
+                value.trim().toUpperCase()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                "Invalid priority: " + value.trim()
+                    + ". Use LOW, MEDIUM, or HIGH."
+            );
+        }
+    }
+
+    private Status parseStatus(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(
+                "Status cannot be empty. "
+                    + "Use OPEN, IN_PROGRESS, or RESOLVED."
+            );
+        }
+
+        try {
+            return Status.valueOf(
+                value.trim().toUpperCase()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                "Invalid status: " + value.trim()
+                    + ". Use OPEN, IN_PROGRESS, or RESOLVED."
+            );
         }
     }
 }
